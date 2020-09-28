@@ -21,6 +21,6 @@ production:
   <<: *defaults
   credentials:
     gateway:
-      :login: sk_live_QU5VNh2mmPxdSwlU8CI49d1r
+      :login: <%= ENV["STRIPE_API_KEY"] %>
       :password:
-    stripe_publishable_key: pk_live_7JgkRQje87x1NWSpa8ftKCcw
+    stripe_publishable_key: <%= ENV["STRIPE_PUBLISHABLE_KEY"] %>
