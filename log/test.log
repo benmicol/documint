@@ -1,0 +1,1494 @@
+  [1m[36m (211.2ms)[0m  [1mDROP DATABASE IF EXISTS "subscriptions_test"[0m
+  [1m[35m (281.8ms)[0m  CREATE DATABASE "subscriptions_test" ENCODING = 'unicode'
+  [1m[36mSQL (0.3ms)[0m  [1mCREATE EXTENSION IF NOT EXISTS "plpgsql"[0m
+  [1m[35m (14.1ms)[0m  CREATE TABLE "accounts" ("id" serial primary key, "name" character varying, "full_domain" character varying, "created_at" timestamp, "updated_at" timestamp) 
+  [1m[36m (13.2ms)[0m  [1mCREATE TABLE "rails_admin_histories" ("id" serial primary key, "message" text, "username" character varying, "item" integer, "table" character varying, "month" smallint, "year" bigint, "created_at" timestamp, "updated_at" timestamp) [0m
+  [1m[35m (4.4ms)[0m  CREATE  INDEX  "index_rails_admin_histories" ON "rails_admin_histories" USING btree ("item", "table", "month", "year")
+  [1m[36m (10.0ms)[0m  [1mCREATE TABLE "saas_admins" ("id" serial primary key, "email" character varying DEFAULT '' NOT NULL, "encrypted_password" character varying(128) DEFAULT '' NOT NULL, "password_salt" character varying DEFAULT '' NOT NULL, "reset_password_token" character varying, "reset_password_sent_at" timestamp, "remember_created_at" timestamp, "sign_in_count" integer DEFAULT 0, "current_sign_in_at" timestamp, "last_sign_in_at" timestamp, "current_sign_in_ip" character varying, "last_sign_in_ip" character varying, "created_at" timestamp, "updated_at" timestamp) [0m
+  [1m[35m (13.3ms)[0m  CREATE TABLE "subscription_affiliates" ("id" serial primary key, "name" character varying, "rate" decimal(6,4) DEFAULT 0.0, "created_at" timestamp, "updated_at" timestamp, "token" character varying) 
+  [1m[36m (4.7ms)[0m  [1mCREATE  INDEX  "index_subscription_affiliates_on_token" ON "subscription_affiliates" USING btree ("token")[0m
+  [1m[35m (8.6ms)[0m  CREATE TABLE "subscription_discounts" ("id" serial primary key, "name" character varying, "code" character varying, "amount" decimal(6,2) DEFAULT 0.0, "percent" boolean, "start_on" date, "end_on" date, "created_at" timestamp, "updated_at" timestamp, "apply_to_setup" boolean DEFAULT 't', "apply_to_recurring" boolean DEFAULT 't', "trial_period_extension" integer DEFAULT 0) 
+  [1m[36m (13.1ms)[0m  [1mCREATE TABLE "subscription_payments" ("id" serial primary key, "subscription_id" integer, "amount" decimal(10,2) DEFAULT 0.0, "transaction_id" character varying, "created_at" timestamp, "updated_at" timestamp, "setup" boolean, "misc" boolean, "subscription_affiliate_id" integer, "affiliate_amount" decimal(6,2) DEFAULT 0.0, "subscriber_id" integer, "subscriber_type" character varying) [0m
+  [1m[35m (6.9ms)[0m  CREATE  INDEX  "index_payments_on_subscriber" ON "subscription_payments" USING btree ("subscriber_id", "subscriber_type")
+  [1m[36m (4.0ms)[0m  [1mCREATE  INDEX  "index_subscription_payments_on_subscription_id" ON "subscription_payments" USING btree ("subscription_id")[0m
+  [1m[35m (8.5ms)[0m  CREATE TABLE "subscription_plans" ("id" serial primary key, "name" character varying, "amount" decimal(10,2), "created_at" timestamp, "updated_at" timestamp, "renewal_period" integer DEFAULT 1, "setup_amount" decimal(10,2), "trial_period" integer DEFAULT 1, "trial_interval" character varying DEFAULT 'months', "user_limit" integer) 
+  [1m[36m (13.6ms)[0m  [1mCREATE TABLE "subscriptions" ("id" serial primary key, "amount" decimal(10,2), "next_renewal_at" timestamp, "card_number" character varying, "card_expiration" character varying, "created_at" timestamp, "updated_at" timestamp, "state" character varying DEFAULT 'trial', "subscription_plan_id" integer, "subscriber_id" integer, "subscriber_type" character varying, "renewal_period" integer DEFAULT 1, "billing_id" character varying, "subscription_discount_id" integer, "subscription_affiliate_id" integer, "user_limit" integer) [0m
+  [1m[35m (6.0ms)[0m  CREATE  INDEX  "index_subscriptions_on_subscriber" ON "subscriptions" USING btree ("subscriber_id", "subscriber_type")
+  [1m[36m (8.9ms)[0m  [1mCREATE TABLE "users" ("id" serial primary key, "email" character varying DEFAULT '' NOT NULL, "encrypted_password" character varying DEFAULT '' NOT NULL, "reset_password_token" character varying, "reset_password_sent_at" timestamp, "remember_created_at" timestamp, "sign_in_count" integer DEFAULT 0 NOT NULL, "current_sign_in_at" timestamp, "last_sign_in_at" timestamp, "current_sign_in_ip" character varying, "last_sign_in_ip" character varying, "name" character varying, "admin" boolean, "account_id" integer, "created_at" timestamp, "updated_at" timestamp) [0m
+  [1m[35m (5.8ms)[0m  CREATE  INDEX  "index_users_on_account_id" ON "users" USING btree ("account_id")
+  [1m[36m (6.8ms)[0m  [1mCREATE UNIQUE INDEX  "index_users_on_email_and_account_id" ON "users" USING btree ("email", "account_id")[0m
+  [1m[35m (7.0ms)[0m  CREATE UNIQUE INDEX  "index_users_on_reset_password_token" ON "users" USING btree ("reset_password_token")
+  [1m[36m (6.5ms)[0m  [1mCREATE TABLE "schema_migrations" ("version" character varying NOT NULL) [0m
+  [1m[35m (4.1ms)[0m  CREATE UNIQUE INDEX  "unique_schema_migrations" ON "schema_migrations"  ("version")
+  [1m[36m (0.3ms)[0m  [1mSELECT version FROM "schema_migrations"[0m
+  [1m[35m (1.3ms)[0m  INSERT INTO "schema_migrations" (version) VALUES ('4')
+  [1m[36m (1.2ms)[0m  [1mINSERT INTO "schema_migrations" (version) VALUES ('3')[0m
+  [1m[35m (1.0ms)[0m  INSERT INTO "schema_migrations" (version) VALUES ('1')
+  [1m[36m (1.0ms)[0m  [1mINSERT INTO "schema_migrations" (version) VALUES ('2')[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.3ms)[0m  [1mSELECT "schema_migrations".* FROM "schema_migrations"[0m
+  [1m[35m (0.2ms)[0m  BEGIN
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.8ms)[0m  ALTER TABLE "accounts" DISABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" DISABLE TRIGGER ALL;ALTER TABLE "saas_admins" DISABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" DISABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" DISABLE TRIGGER ALL;ALTER TABLE "subscription_payments" DISABLE TRIGGER ALL;ALTER TABLE "subscription_plans" DISABLE TRIGGER ALL;ALTER TABLE "subscriptions" DISABLE TRIGGER ALL;ALTER TABLE "users" DISABLE TRIGGER ALL;ALTER TABLE "schema_migrations" DISABLE TRIGGER ALL
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mFixture Delete (0.3ms)[0m  DELETE FROM "subscription_plans"
+  [1m[36mFixture Insert (0.4ms)[0m  [1mINSERT INTO "subscription_plans" ("amount", "name", "user_limit", "created_at", "updated_at", "id") VALUES (10, 'Basic', 3, '2015-09-22 00:10:32', '2015-09-22 00:10:32', 276395349)[0m
+  [1m[35mFixture Insert (0.1ms)[0m  INSERT INTO "subscription_plans" ("amount", "name", "user_limit", "created_at", "updated_at", "id") VALUES (10, 'Advanced', 10, '2015-09-22 00:10:32', '2015-09-22 00:10:32', 1015965811)
+  [1m[36mFixture Insert (0.5ms)[0m  [1mINSERT INTO "subscription_plans" ("amount", "name", "user_limit", "created_at", "updated_at", "id") VALUES (0, 'Free', 1, '2015-09-22 00:10:32', '2015-09-22 00:10:32', 221168073)[0m
+  [1m[35m (2.0ms)[0m  COMMIT
+  [1m[36m (0.3ms)[0m  [1mALTER TABLE "accounts" ENABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" ENABLE TRIGGER ALL;ALTER TABLE "saas_admins" ENABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" ENABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" ENABLE TRIGGER ALL;ALTER TABLE "subscription_payments" ENABLE TRIGGER ALL;ALTER TABLE "subscription_plans" ENABLE TRIGGER ALL;ALTER TABLE "subscriptions" ENABLE TRIGGER ALL;ALTER TABLE "users" ENABLE TRIGGER ALL;ALTER TABLE "schema_migrations" ENABLE TRIGGER ALL[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.4ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.3ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.3ms)[0m  [1mALTER TABLE "accounts" DISABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" DISABLE TRIGGER ALL;ALTER TABLE "saas_admins" DISABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" DISABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" DISABLE TRIGGER ALL;ALTER TABLE "subscription_payments" DISABLE TRIGGER ALL;ALTER TABLE "subscription_plans" DISABLE TRIGGER ALL;ALTER TABLE "subscriptions" DISABLE TRIGGER ALL;ALTER TABLE "users" DISABLE TRIGGER ALL;ALTER TABLE "schema_migrations" DISABLE TRIGGER ALL[0m
+  [1m[35m (0.2ms)[0m  BEGIN
+  [1m[36mFixture Delete (0.3ms)[0m  [1mDELETE FROM "subscription_affiliates"[0m
+  [1m[35mFixture Insert (0.3ms)[0m  INSERT INTO "subscription_affiliates" ("name", "token", "rate", "created_at", "updated_at", "id") VALUES ('Bob', 'bob', 0.1, '2015-09-22 00:10:32', '2015-09-22 00:10:32', 902541635)
+  [1m[36mFixture Delete (0.3ms)[0m  [1mDELETE FROM "subscription_discounts"[0m
+  [1m[35mFixture Insert (0.3ms)[0m  INSERT INTO "subscription_discounts" ("code", "amount", "percent", "created_at", "updated_at", "id") VALUES ('bar', 5, 'f', '2015-09-22 00:10:32', '2015-09-22 00:10:32', 402817757)
+  [1m[36mFixture Delete (0.4ms)[0m  [1mDELETE FROM "subscriptions"[0m
+  [1m[35mFixture Insert (0.3ms)[0m  INSERT INTO "subscriptions" ("user_limit", "next_renewal_at", "amount", "card_number", "card_expiration", "billing_id", "created_at", "updated_at", "id", "subscriber_type", "subscriber_id", "subscription_plan_id") VALUES (3, '2015-09-21 00:10:32.000000', 10, 'XXXX-XXXX-XXXX-1111', '05-2012', 'foo', '2015-09-22 00:10:32', '2015-09-22 00:10:32', 980190962, 'Account', 516032549, 276395349)
+  [1m[36mFixture Delete (0.3ms)[0m  [1mDELETE FROM "accounts"[0m
+  [1m[35mFixture Insert (0.2ms)[0m  INSERT INTO "accounts" ("name", "full_domain", "created_at", "updated_at", "id") VALUES ('My first account', 'test.host', '2015-09-22 00:10:32', '2015-09-22 00:10:32', 516032549)
+  [1m[36mFixture Insert (0.1ms)[0m  [1mINSERT INTO "accounts" ("name", "full_domain", "created_at", "updated_at", "id") VALUES ('Another account', 'other.host', '2015-09-22 00:10:32', '2015-09-22 00:10:32', 14165655)[0m
+  [1m[35m (2.1ms)[0m  COMMIT
+  [1m[36m (0.3ms)[0m  [1mALTER TABLE "accounts" ENABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" ENABLE TRIGGER ALL;ALTER TABLE "saas_admins" ENABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" ENABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" ENABLE TRIGGER ALL;ALTER TABLE "subscription_payments" ENABLE TRIGGER ALL;ALTER TABLE "subscription_plans" ENABLE TRIGGER ALL;ALTER TABLE "subscriptions" ENABLE TRIGGER ALL;ALTER TABLE "users" ENABLE TRIGGER ALL;ALTER TABLE "schema_migrations" ENABLE TRIGGER ALL[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "subscriptions" ("user_limit", "amount", "subscription_plan_id", "next_renewal_at", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"[0m  [["user_limit", 3], ["amount", "10.0"], ["subscription_plan_id", 276395349], ["next_renewal_at", "2015-09-23 00:10:32.931537"], ["created_at", "2015-09-22 00:10:32.935996"], ["updated_at", "2015-09-22 00:10:32.935996"]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.3ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "subscriptions" ("user_limit", "amount", "subscription_plan_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"  [["user_limit", 3], ["amount", "10.0"], ["subscription_plan_id", 276395349], ["created_at", "2015-09-22 00:10:32.965107"], ["updated_at", "2015-09-22 00:10:32.965107"], ["next_renewal_at", "2015-10-22 00:10:32.965309"]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.5ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.0ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.0ms)[0m  INSERT INTO "subscriptions" ("state", "user_limit", "amount", "renewal_period", "subscription_plan_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["state", "active"], ["user_limit", 3], ["amount", "10.0"], ["renewal_period", 3], ["subscription_plan_id", 276395349], ["created_at", "2015-09-22 00:10:33.093249"], ["updated_at", "2015-09-22 00:10:33.093249"]]
+  [1m[36m (0.0ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mAccount Load (0.3ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.4ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.3ms)[0m  UPDATE "subscriptions" SET "amount" = $1, "updated_at" = $2 WHERE "subscriptions"."id" = $3  [["amount", "9.0"], ["updated_at", "2015-09-22 00:10:33.136671"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mSubscriptionDiscount Load (0.2ms)[0m  SELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."id" = $1 LIMIT 1  [["id", 402817757]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSQL (0.2ms)[0m  [1mUPDATE "subscriptions" SET "subscription_discount_id" = $1, "updated_at" = $2, "amount" = $3 WHERE "subscriptions"."id" = $4[0m  [["subscription_discount_id", 402817757], ["updated_at", "2015-09-22 00:10:33.147997"], ["amount", "5.0"], ["id", 980190962]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.1ms)[0m  DELETE FROM "subscriptions" WHERE "subscriptions"."id" = $1  [["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.8ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35m (0.2ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.4ms)[0m  [1mDELETE FROM "subscriptions" WHERE "subscriptions"."id" = $1[0m  [["id", 980190962]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 1015965811]]
+  [1m[35mSubscriptionDiscount Load (0.2ms)[0m  SELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."id" = $1 LIMIT 1  [["id", 402817757]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.5ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  [1m[35mSQL (0.2ms)[0m  UPDATE "subscriptions" SET "user_limit" = $1, "subscription_plan_id" = $2, "subscription_discount_id" = $3, "updated_at" = $4, "amount" = $5 WHERE "subscriptions"."id" = $6  [["user_limit", 10], ["subscription_plan_id", 1015965811], ["subscription_discount_id", 402817757], ["updated_at", "2015-09-22 00:10:33.184929"], ["amount", "5.0"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 1015965811]]
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.8ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 1015965811]]
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 1015965811]]
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  UPDATE "subscriptions" SET "amount" = $1, "next_renewal_at" = $2, "state" = $3, "updated_at" = $4 WHERE "subscriptions"."id" = $5  [["amount", "0.0"], ["next_renewal_at", "2015-10-21 00:10:32.000000"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.219518"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.5ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.6ms)[0m  SELECT COUNT(*) FROM "subscription_payments"
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  UPDATE "subscriptions" SET "next_renewal_at" = $1, "state" = $2, "updated_at" = $3 WHERE "subscriptions"."id" = $4  [["next_renewal_at", "2015-10-21 00:10:32.000000"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.241869"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.5ms)[0m  [1mINSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "transaction_id", "subscription_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["transaction_id", "411"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.246165"], ["updated_at", "2015-09-22 00:10:33.246165"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 12e673a7-c98b-4deb-b77e-a3f2e56e5eda) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/1
+[ActiveJob]   [1m[35mSubscriptionPayment Load (0.4ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1  [["id", 1]]
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/1
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda]   [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda]   [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda]   [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (4.5ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 245.3ms
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda] 
+Sent mail to some@email.com (8.8ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: some@email.com
+Message-ID: <56009c7980dd1_18d48d3998835b5@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 21 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+some@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 21 October 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [12e673a7-c98b-4deb-b77e-a3f2e56e5eda] Performed ActionMailer::DeliveryJob from Inline(mailers) in 254.88ms
+  [1m[35m (0.2ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "subscription_payments"[0m
+  [1m[35mSubscriptionPayment Load (0.4ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments"  ORDER BY "subscription_payments"."id" DESC LIMIT 1
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "transaction_id", "subscription_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["transaction_id", "411"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.554929"], ["updated_at", "2015-09-22 00:10:33.554929"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: ed4c0628-9c3c-4037-bdd0-ff00c1d56b15) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/2
+[ActiveJob]   [1m[35mSubscriptionPayment Load (0.3ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1  [["id", 2]]
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/2
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15]   [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15]   [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15]   [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (2.6ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 6.4ms
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15] 
+Sent mail to some@email.com (2.2ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: some@email.com
+Message-ID: <56009c798a8e2_18d48d3998836f8@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 21 September 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+some@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 21 September 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [ed4c0628-9c3c-4037-bdd0-ff00c1d56b15] Performed ActionMailer::DeliveryJob from Inline(mailers) in 9.1ms
+  [1m[35m (0.2ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionAffiliate Load (0.4ms)[0m  SELECT  "subscription_affiliates".* FROM "subscription_affiliates"  ORDER BY "subscription_affiliates"."id" ASC LIMIT 1
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  UPDATE "subscriptions" SET "subscription_affiliate_id" = $1, "next_renewal_at" = $2, "state" = $3, "updated_at" = $4 WHERE "subscriptions"."id" = $5  [["subscription_affiliate_id", 902541635], ["next_renewal_at", "2015-10-21 00:10:32.000000"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.585604"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "transaction_id", "subscription_id", "created_at", "updated_at", "subscription_affiliate_id", "affiliate_amount") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["transaction_id", "411"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.589902"], ["updated_at", "2015-09-22 00:10:33.589902"], ["subscription_affiliate_id", 902541635], ["affiliate_amount", "1.0"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 1aabb2da-3d70-45d7-bb1b-1aa724aa7f56) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/3
+[ActiveJob]   [1m[35mSubscriptionPayment Load (0.2ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1  [["id", 3]]
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/3
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56]   [1m[36mSubscription Load (0.6ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56]   [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56]   [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (2.3ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 7.0ms
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56] 
+Sent mail to some@email.com (2.2ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: some@email.com
+Message-ID: <56009c79937b9_18d48d3998837fc@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 21 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+some@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 21 October 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [1aabb2da-3d70-45d7-bb1b-1aa724aa7f56] Performed ActionMailer::DeliveryJob from Inline(mailers) in 9.66ms
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36mSubscriptionPayment Load (0.3ms)[0m  [1mSELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."subscription_id" = $1  ORDER BY "subscription_payments"."id" DESC LIMIT 1[0m  [["subscription_id", 980190962]]
+  [1m[35m (0.3ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionAffiliate Load (0.3ms)[0m  [1mSELECT  "subscription_affiliates".* FROM "subscription_affiliates"  ORDER BY "subscription_affiliates"."id" ASC LIMIT 1[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.2ms)[0m  [1mUPDATE "subscriptions" SET "subscription_affiliate_id" = $1, "next_renewal_at" = $2, "state" = $3, "updated_at" = $4 WHERE "subscriptions"."id" = $5[0m  [["subscription_affiliate_id", 902541635], ["next_renewal_at", "2015-10-21 00:10:32.000000"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.619002"], ["id", 980190962]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "transaction_id", "subscription_id", "created_at", "updated_at", "subscription_affiliate_id", "affiliate_amount") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["transaction_id", "411"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.623193"], ["updated_at", "2015-09-22 00:10:33.623193"], ["subscription_affiliate_id", 902541635], ["affiliate_amount", "1.0"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 7bb678b2-2b50-498b-a5b2-caf97f81dee8) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/4
+[ActiveJob]   [1m[36mSubscriptionPayment Load (0.6ms)[0m  [1mSELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1[0m  [["id", 4]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/4
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8]   [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8]   [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8]   [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (2.2ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 6.0ms
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8] 
+Sent mail to some@email.com (2.1ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: some@email.com
+Message-ID: <56009c799b49b_18d48d39988389a@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 21 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+some@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 21 October 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [7bb678b2-2b50-498b-a5b2-caf97f81dee8] Performed ActionMailer::DeliveryJob from Inline(mailers) in 8.64ms
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35mSubscriptionPayment Load (0.3ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."subscription_id" = $1  ORDER BY "subscription_payments"."id" DESC LIMIT 1  [["subscription_id", 980190962]]
+  [1m[36mSubscriptionAffiliate Load (0.2ms)[0m  [1mSELECT  "subscription_affiliates".* FROM "subscription_affiliates" WHERE "subscription_affiliates"."id" = $1 LIMIT 1[0m  [["id", 902541635]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionAffiliate Load (0.3ms)[0m  [1mSELECT  "subscription_affiliates".* FROM "subscription_affiliates"  ORDER BY "subscription_affiliates"."id" ASC LIMIT 1[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.2ms)[0m  [1mUPDATE "subscriptions" SET "next_renewal_at" = $1, "state" = $2, "updated_at" = $3 WHERE "subscriptions"."id" = $4[0m  [["next_renewal_at", "2015-10-21 00:10:32.000000"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.651935"], ["id", 980190962]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.7ms)[0m  INSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "transaction_id", "subscription_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["transaction_id", "411"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.655901"], ["updated_at", "2015-09-22 00:10:33.655901"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/5
+[ActiveJob]   [1m[36mSubscriptionPayment Load (0.4ms)[0m  [1mSELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1[0m  [["id", 5]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/5
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e]   [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e]   [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e]   [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (2.3ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 5.9ms
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e] 
+Sent mail to some@email.com (2.1ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: some@email.com
+Message-ID: <56009c79a33ed_18d48d3998839f8@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 21 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+some@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 21 October 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [7d8a6bfb-910f-42a7-981b-ec4e12ac3d0e] Performed ActionMailer::DeliveryJob from Inline(mailers) in 8.47ms
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35mSubscriptionPayment Load (0.3ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."subscription_id" = $1  ORDER BY "subscription_payments"."id" DESC LIMIT 1  [["subscription_id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.0ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.4ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.0ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (1.8ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.3ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.0ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.1ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35mAccount Load (0.0ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1[0m  [["id", 980190962]]
+  [1m[35m (0.0ms)[0m  SELECT COUNT(*) FROM "subscription_payments"
+  [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35m (0.0ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.0ms)[0m  [1mUPDATE "subscriptions" SET "next_renewal_at" = $1, "card_number" = $2, "state" = $3, "updated_at" = $4 WHERE "subscriptions"."id" = $5[0m  [["next_renewal_at", "2015-10-22 00:10:33.812079"], ["card_number", "1111"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.812079"], ["id", 980190962]]
+  [1m[35mSQL (0.0ms)[0m  INSERT INTO "subscription_payments" ("subscriber_id", "subscriber_type", "amount", "subscription_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"  [["subscriber_id", 516032549], ["subscriber_type", "Account"], ["amount", "10.0"], ["subscription_id", 980190962], ["created_at", "2015-09-22 00:10:33.812079"], ["updated_at", "2015-09-22 00:10:33.812079"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 07a5f605-1172-4883-9f69-717cc8c614dc) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/6
+[ActiveJob]   [1m[36mSubscriptionPayment Load (0.0ms)[0m  [1mSELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1[0m  [["id", 6]]
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/6
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc]   [1m[35mSubscription Load (0.0ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc]   [1m[36mAccount Load (0.0ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc]   [1m[35mSubscriptionPlan Load (0.0ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (0.0ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 0.0ms
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc] 
+Sent mail to test@email.com (0.0ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc] Date: Mon, 21 Sep 2015 20:10:33 -0400
+From: support@sampleapp.com
+To: test@email.com
+Message-ID: <56009c79c642f_18d48d3998840d1@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card 1111 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 22 September 2015 until 22 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+test@email.com
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 22 September 2015 to 22 October 2015
+
+                   Credit card billed: 1111
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [07a5f605-1172-4883-9f69-717cc8c614dc] Performed ActionMailer::DeliveryJob from Inline(mailers) in 0.0ms
+  [1m[36m (0.0ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.0ms)[0m  SELECT COUNT(*) FROM "subscription_payments"
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190962]]
+  [1m[36m (0.0ms)[0m  [1mSELECT COUNT(*) FROM "subscription_payments"[0m
+  [1m[35m (0.0ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.0ms)[0m  [1mUPDATE "subscriptions" SET "next_renewal_at" = $1, "card_number" = $2, "state" = $3, "updated_at" = $4 WHERE "subscriptions"."id" = $5[0m  [["next_renewal_at", "2015-09-24 00:10:33.845600"], ["card_number", "1111"], ["state", "active"], ["updated_at", "2015-09-22 00:10:33.845600"], ["id", 980190962]]
+  [1m[35m (0.0ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.0ms)[0m  [1mSELECT COUNT(*) FROM "subscription_payments"[0m
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.3ms)[0m  [1mALTER TABLE "accounts" DISABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" DISABLE TRIGGER ALL;ALTER TABLE "saas_admins" DISABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" DISABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" DISABLE TRIGGER ALL;ALTER TABLE "subscription_payments" DISABLE TRIGGER ALL;ALTER TABLE "subscription_plans" DISABLE TRIGGER ALL;ALTER TABLE "subscriptions" DISABLE TRIGGER ALL;ALTER TABLE "users" DISABLE TRIGGER ALL;ALTER TABLE "schema_migrations" DISABLE TRIGGER ALL[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mFixture Delete (0.2ms)[0m  [1mDELETE FROM "users"[0m
+  [1m[35mFixture Insert (0.4ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "admin", "created_at", "updated_at", "id", "account_id") VALUES ('Account Admin', 'admin@example.com', 'dd1fc6247a60092c811a90d410026f39b9f1a2ad20ed0461e132efbafa47a11a6dab59f517492065f5f465b830306268f9e7da53d8a33366db2c2e54eea3b420', 't', '2015-09-22 00:10:33', '2015-09-22 00:10:33', 1048695817, 516032549)
+  [1m[36mFixture Insert (0.2ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "created_at", "updated_at", "id", "account_id") VALUES ('Account User', 'user@example.com', 'dd1fc6247a60092c811a90d410026f39b9f1a2ad20ed0461e132efbafa47a11a6dab59f517492065f5f465b830306268f9e7da53d8a33366db2c2e54eea3b420', 'f', '2015-09-22 00:10:33', '2015-09-22 00:10:33', 16798179, 516032549)[0m
+  [1m[35m (2.0ms)[0m  COMMIT
+  [1m[36m (0.3ms)[0m  [1mALTER TABLE "accounts" ENABLE TRIGGER ALL;ALTER TABLE "rails_admin_histories" ENABLE TRIGGER ALL;ALTER TABLE "saas_admins" ENABLE TRIGGER ALL;ALTER TABLE "subscription_affiliates" ENABLE TRIGGER ALL;ALTER TABLE "subscription_discounts" ENABLE TRIGGER ALL;ALTER TABLE "subscription_payments" ENABLE TRIGGER ALL;ALTER TABLE "subscription_plans" ENABLE TRIGGER ALL;ALTER TABLE "subscriptions" ENABLE TRIGGER ALL;ALTER TABLE "users" ENABLE TRIGGER ALL;ALTER TABLE "schema_migrations" ENABLE TRIGGER ALL[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  Rendered users/_form.html.erb (18.3ms)
+  Rendered users/new.html.erb (43.6ms)
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1  [["account_id", 516032549]]
+  Rendered users/_form.html.erb (11.6ms)
+  Rendered users/new.html.erb (29.0ms)
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscription Load (0.4ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.2ms)[0m  [1mUPDATE "subscriptions" SET "user_limit" = $1, "updated_at" = $2 WHERE "subscriptions"."id" = $3[0m  [["user_limit", 2], ["updated_at", "2015-09-22 00:10:33.973879"], ["id", 980190962]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  Rendered users/new.html.erb (1.8ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1  [["account_id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mSQL (0.2ms)[0m  UPDATE "subscriptions" SET "user_limit" = $1, "updated_at" = $2 WHERE "subscriptions"."id" = $3  [["user_limit", 2], ["updated_at", "2015-09-22 00:10:33.986117"], ["id", 980190962]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.4ms)[0m  SELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1  [["account_id", 516032549]]
+  Rendered users/new.html.erb (2.2ms)
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans"  ORDER BY "subscription_plans"."id" ASC LIMIT 1
+Processing by AccountsController#new as HTML
+  Parameters: {"ref"=>"foo", "plan"=>"Free"}
+Unpermitted parameter: ref
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Free"]]
+  Rendered accounts/new.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 8ms (Views: 3.6ms | ActiveRecord: 0.2ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.4ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.4ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans"  ORDER BY "subscription_plans"."id" ASC LIMIT 1[0m
+Processing by AccountsController#new as HTML
+  Parameters: {"ref"=>"foo", "plan"=>"Free"}
+Unpermitted parameter: ref
+  [1m[35mSubscriptionPlan Load (0.3ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1  [["name", "Free"]]
+  Rendered accounts/new.html.erb within layouts/application (0.4ms)
+Completed 200 OK in 3ms (Views: 1.2ms | ActiveRecord: 0.3ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans"  ORDER BY "subscription_plans"."id" ASC LIMIT 1
+Processing by AccountsController#new as HTML
+  Parameters: {"plan"=>"Free"}
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Free"]]
+  Rendered accounts/new.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 3ms (Views: 1.2ms | ActiveRecord: 0.2ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#create as HTML
+  Parameters: {"account"=>{"name"=>"Bob", "domain"=>"Bob", "admin_attributes"=>{"email"=>"foo@foo.com", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}}, "plan"=>"Basic"}
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Basic"]]
+Redirected to http://test.host/signup/thanks
+Completed 302 Found in 3ms (ActiveRecord: 0.3ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#create as HTML
+  Parameters: {"account"=>{"name"=>"Bob", "domain"=>"Bob", "admin_attributes"=>{"email"=>"foo@foo.com", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}}, "plan"=>"Basic"}
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Basic"]]
+Redirected to http://test.host/signup/thanks
+Completed 302 Found in 2ms (ActiveRecord: 0.2ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#create as HTML
+  Parameters: {"account"=>{"name"=>"Bob", "domain"=>"Bob", "admin_attributes"=>{"email"=>"foo@foo.com", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}}, "plan"=>"Basic"}
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Basic"]]
+Redirected to http://test.host/signup/thanks
+Completed 302 Found in 2ms (ActiveRecord: 0.3ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mSubscriptionDiscount Load (0.2ms)[0m  [1mSELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."id" = $1 LIMIT 1[0m  [["id", 402817757]]
+Processing by AccountsController#plans as HTML
+  Parameters: {"discount"=>"bar"}
+  [1m[35mSubscriptionDiscount Load (0.2ms)[0m  SELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."code" = $1 LIMIT 1  [["code", "bar"]]
+  [1m[36mSubscriptionPlan Load (0.5ms)[0m  [1mSELECT "subscription_plans".* FROM "subscription_plans"  ORDER BY amount desc[0m
+  Rendered accounts/plans.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 5ms (Views: 1.6ms | ActiveRecord: 0.6ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#plans as HTML
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT "subscription_plans".* FROM "subscription_plans"  ORDER BY amount desc[0m
+  Rendered accounts/plans.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 3ms (Views: 1.2ms | ActiveRecord: 0.2ms)
+  [1m[35mSubscriptionPlan Load (0.4ms)[0m  SELECT "subscription_plans".* FROM "subscription_plans"  ORDER BY amount desc
+  [1m[36m (0.3ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by AccountsController#update as HTML
+  Parameters: {"account"=>{"name"=>"Foo"}}
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+Redirected to http://test.host/account
+Completed 302 Found in 6ms (ActiveRecord: 0.3ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#update as HTML
+  Parameters: {"account"=>{"name"=>"Foo"}}
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 16798179]]
+Redirected to http://test.host/users/sign_in
+Filter chain halted as :authorized? rendered or redirected
+Completed 302 Found in 2ms (ActiveRecord: 0.2ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+Processing by AccountsController#plan as HTML
+  Parameters: {"plan_id"=>"24"}
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+Redirected to http://test.host/account/plan
+Completed 302 Found in 3ms (ActiveRecord: 0.2ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mSubscriptionDiscount Load (0.2ms)[0m  [1mSELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."id" = $1 LIMIT 1[0m  [["id", 402817757]]
+Processing by AccountsController#plan as HTML
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT "subscription_plans".* FROM "subscription_plans" WHERE (id <> 276395349)  ORDER BY amount desc[0m
+  Rendered accounts/plan.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 5ms (Views: 1.7ms | ActiveRecord: 0.5ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.3ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#cancel as HTML
+  Parameters: {"confirm"=>"1"}
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+Redirected to http://test.host/account/canceled
+Completed 302 Found in 6ms (ActiveRecord: 0.5ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#cancel as HTML
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+  Rendered accounts/cancel.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 4ms (Views: 1.7ms | ActiveRecord: 0.3ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.4ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#cancel as HTML
+  Parameters: {"confirm"=>"1"}
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+Redirected to http://test.host/account/canceled
+Completed 302 Found in 2ms (ActiveRecord: 0.2ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by AccountsController#new as HTML
+  Parameters: {"plan"=>"Basic"}
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1[0m  [["name", "Basic"]]
+  Rendered accounts/new.html.erb within layouts/application (0.4ms)
+Completed 200 OK in 3ms (Views: 1.2ms | ActiveRecord: 0.2ms)
+  [1m[35mSubscriptionDiscount Load (0.2ms)[0m  SELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."id" = $1 LIMIT 1  [["id", 402817757]]
+Processing by AccountsController#new as HTML
+  Parameters: {"plan"=>"Basic", "discount"=>"bar"}
+  [1m[36mSubscriptionDiscount Load (0.2ms)[0m  [1mSELECT  "subscription_discounts".* FROM "subscription_discounts" WHERE "subscription_discounts"."code" = $1 LIMIT 1[0m  [["code", "bar"]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1  [["name", "Basic"]]
+  Rendered accounts/new.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 3ms (Views: 1.0ms | ActiveRecord: 0.5ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by AccountsController#new as HTML
+  Parameters: {"plan"=>"Basic"}
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."name" = $1 LIMIT 1  [["name", "Basic"]]
+  Rendered accounts/new.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 3ms (Views: 1.3ms | ActiveRecord: 0.1ms)
+  [1m[36m (0.6ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+Processing by AccountsController#billing as HTML
+  Parameters: {"creditcard"=>"[FILTERED]", "address"=>{}}
+  [1m[36mUser Load (0.1ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+Redirected to http://test.host/account/billing
+Completed 302 Found in 3ms (ActiveRecord: 0.1ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+Processing by AccountsController#billing as HTML
+  Parameters: {"stripeToken"=>"asdf"}
+  [1m[35mUser Load (0.1ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+Redirected to http://test.host/account/billing
+Completed 302 Found in 2ms (ActiveRecord: 0.1ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.3ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#index as HTML
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+Completed 401 Unauthorized in 8ms (ActiveRecord: 0.2ms)
+  Rendered text template (0.0ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#index as HTML
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.1ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+  Rendered users/index.html.erb within layouts/application (0.4ms)
+Completed 200 OK in 7ms (Views: 3.0ms | ActiveRecord: 0.3ms)
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1  [["account_id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by UsersController#new as HTML
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+  Rendered users/new.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 20ms (Views: 15.4ms | ActiveRecord: 0.4ms)
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#edit as HTML
+  Parameters: {"id"=>"16798179"}
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.1ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."id" = $2 LIMIT 1  [["account_id", 516032549], ["id", 16798179]]
+  Rendered users/edit.html.erb within layouts/application (0.3ms)
+Completed 200 OK in 7ms (Views: 1.5ms | ActiveRecord: 0.7ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1 LIMIT 1  [["id", 16798179]]
+Processing by UsersController#update as HTML
+  Parameters: {"user"=>{"name"=>"Eladio Casper", "email"=>"filomena@reinger.net", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}, "id"=>"16798179"}
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."id" = $2 LIMIT 1[0m  [["account_id", 516032549], ["id", 16798179]]
+Unpermitted parameter: id
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.4ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."id" != 16798179 AND "users"."account_id" = 516032549) LIMIT 1[0m
+  [1m[35mSQL (0.2ms)[0m  UPDATE "users" SET "name" = $1, "email" = $2, "encrypted_password" = $3, "updated_at" = $4 WHERE "users"."id" = $5  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$37.SOh6LQ0rOCPakIp/zOuRtFOq9uVqwSOJcWJI.AkaEJliW2d6PO"], ["updated_at", "2015-09-22 00:10:34.373609"], ["id", 16798179]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+Redirected to http://test.host/users
+Completed 302 Found in 24ms (ActiveRecord: 1.6ms)
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1 LIMIT 1  [["id", 16798179]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "users"
+Processing by UsersController#create as HTML
+  Parameters: {"user"=>{"name"=>"Eladio Casper", "email"=>"filomena@reinger.net", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}}
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 1048695817]]
+Redirected to http://test.host/users/new
+Filter chain halted as :check_user_limit rendered or redirected
+Completed 302 Found in 4ms (ActiveRecord: 0.4ms)
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users"[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "users"[0m
+Processing by UsersController#create as HTML
+  Parameters: {"user"=>{"name"=>"Eladio Casper", "email"=>"filomena@reinger.net", "password"=>"[FILTERED]", "password_confirmation"=>"[FILTERED]"}}
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 1048695817]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (1.0ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" = 516032549) LIMIT 1[0m
+  [1m[35mSQL (0.4ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6) RETURNING "id"  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$2a8BXEu6ngk5SRteFBFjAeKKz/PWywXmNrzeHTQxPxz.g1LXAaAwi"], ["account_id", 516032549], ["created_at", "2015-09-22 00:10:34.420632"], ["updated_at", "2015-09-22 00:10:34.420632"]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+Redirected to http://test.host/users
+Completed 302 Found in 17ms (ActiveRecord: 2.0ms)
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "users"
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.4ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#new as HTML
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 16798179]]
+Redirected to http://test.host/users/sign_in
+Filter chain halted as :authorized? rendered or redirected
+Completed 302 Found in 4ms (ActiveRecord: 0.4ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mUser Load (0.3ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by UsersController#index as HTML
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 16798179]]
+  Rendered users/index.html.erb within layouts/application (0.5ms)
+Completed 200 OK in 5ms (Views: 1.3ms | ActiveRecord: 0.5ms)
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1[0m  [["account_id", 516032549]]
+  [1m[35m (0.1ms)[0m  SELECT COUNT(*) FROM "users" WHERE "users"."account_id" = $1  [["account_id", 516032549]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#edit as HTML
+  Parameters: {"id"=>"16798179"}
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 16798179]]
+Redirected to http://test.host/users/sign_in
+Filter chain halted as :authorized? rendered or redirected
+Completed 302 Found in 4ms (ActiveRecord: 0.4ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+Processing by UsersController#update as HTML
+  Parameters: {"user"=>{"name"=>"bob"}, "id"=>"16798179"}
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mUser Load (0.4ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1  [["id", 16798179]]
+Redirected to http://test.host/users/sign_in
+Filter chain halted as :authorized? rendered or redirected
+Completed 302 Found in 4ms (ActiveRecord: 0.6ms)
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mUser Load (0.2ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't'  ORDER BY "users"."id" ASC LIMIT 1  [["account_id", 516032549]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 'f'  ORDER BY "users"."id" ASC LIMIT 1[0m  [["account_id", 516032549]]
+Processing by UsersController#create as HTML
+  Parameters: {"user"=>{"name"=>"bob"}}
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mUser Load (0.2ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."id" = $1  ORDER BY "users"."id" ASC LIMIT 1[0m  [["id", 16798179]]
+Redirected to http://test.host/users/sign_in
+Filter chain halted as :authorized? rendered or redirected
+Completed 302 Found in 4ms (ActiveRecord: 0.5ms)
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  Rendered accounts/edit.html.erb (5.7ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.5ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  Rendered accounts/new.html.erb (8.4ms)
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  Rendered accounts/new.html.erb (8.3ms)
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  Rendered accounts/new.html.erb (7.3ms)
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "subscriptions"[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mUser Exists (0.3ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36mUser Exists (0.2ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"[0m  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.585695"], ["updated_at", "2015-09-22 00:10:34.585695"]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$B/yTynlVdWpOQZoDVDKU/.S4XK5CY7a4DrzSQ5tpsk8myHoP3Qu9O"], ["admin", "t"], ["account_id", 516032550], ["created_at", "2015-09-22 00:10:34.587570"], ["updated_at", "2015-09-22 00:10:34.587570"]]
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"[0m  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscriber_type", "Account"], ["subscriber_id", 516032550], ["created_at", "2015-09-22 00:10:34.590057"], ["updated_at", "2015-09-22 00:10:34.590057"], ["next_renewal_at", "2015-10-22 00:10:34.590296"]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "subscriptions"[0m
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions"  ORDER BY "subscriptions"."id" DESC LIMIT 1
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032550]]
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK TO SAVEPOINT active_record_1
+  [1m[36m (0.4ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mUser Exists (0.4ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = '' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36mUser Exists (0.3ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = '' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')
+  [1m[36m (0.1ms)[0m  [1mROLLBACK TO SAVEPOINT active_record_1[0m
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscription Load (0.3ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscriptionAffiliate Load (0.3ms)[0m  [1mSELECT  "subscription_affiliates".* FROM "subscription_affiliates" WHERE "subscription_affiliates"."id" = $1 LIMIT 1[0m  [["id", 902541635]]
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "subscriptions"
+  [1m[36mSubscriptionPlan Load (0.3ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 221168073]]
+  [1m[35m (0.2ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.5ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.3ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.644947"], ["updated_at", "2015-09-22 00:10:34.644947"]]
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$QbWk3bwzX65d7eZp3YbNfe7qiIhxhGCt5SVEygKvwBeR7rJz59.xu"], ["admin", "t"], ["account_id", 516032551], ["created_at", "2015-09-22 00:10:34.646682"], ["updated_at", "2015-09-22 00:10:34.646682"]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscription_affiliate_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING "id"  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscription_affiliate_id", 902541635], ["subscriber_type", "Account"], ["subscriber_id", 516032551], ["created_at", "2015-09-22 00:10:34.649491"], ["updated_at", "2015-09-22 00:10:34.649491"], ["next_renewal_at", "2015-10-22 00:10:34.649679"]]
+  [1m[36m (0.2ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "subscriptions"
+  [1m[36mSubscription Load (0.3ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions"  ORDER BY "subscriptions"."id" DESC LIMIT 1[0m
+  [1m[35mSubscriptionAffiliate Load (0.2ms)[0m  SELECT  "subscription_affiliates".* FROM "subscription_affiliates" WHERE "subscription_affiliates"."id" = $1 LIMIT 1  [["id", 902541635]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscriptionPlan Load (0.4ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 221168073]]
+  [1m[35m (0.2ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.5ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.4ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.673887"], ["updated_at", "2015-09-22 00:10:34.673887"]]
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$1pYnVKcizI/kdOGZKfLJS.PdO9K6JNjL6PJaeC22v94zOlkobMhBW"], ["admin", "t"], ["account_id", 516032552], ["created_at", "2015-09-22 00:10:34.675967"], ["updated_at", "2015-09-22 00:10:34.675967"]]
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscriber_type", "Account"], ["subscriber_id", 516032552], ["created_at", "2015-09-22 00:10:34.678692"], ["updated_at", "2015-09-22 00:10:34.678692"], ["next_renewal_at", "2015-10-22 00:10:34.678881"]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users"  ORDER BY "users"."id" DESC LIMIT 1
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032552]]
+  [1m[35m (0.2ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  [1m[36m (0.8ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mUser Exists (0.6ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36mUser Exists (0.4ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"[0m  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.702292"], ["updated_at", "2015-09-22 00:10:34.702292"]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$PUcmhSaISbuJ3MiMborXgO8uzhGj6p7f3t9b3fDSmM74ZOMtnf0si"], ["admin", "t"], ["account_id", 516032553], ["created_at", "2015-09-22 00:10:34.704154"], ["updated_at", "2015-09-22 00:10:34.704154"]]
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"[0m  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscriber_type", "Account"], ["subscriber_id", 516032553], ["created_at", "2015-09-22 00:10:34.707117"], ["updated_at", "2015-09-22 00:10:34.707117"], ["next_renewal_at", "2015-10-22 00:10:34.707305"]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users"[0m
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mUser Exists (0.3ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36mUser Exists (0.8ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35m (0.3ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"[0m  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.726940"], ["updated_at", "2015-09-22 00:10:34.726940"]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$UVT/8II77t7t7qwasqrX6.TWq.1ivbxtbvwvQDKbkW2NhNUQVPwOG"], ["admin", "t"], ["account_id", 516032554], ["created_at", "2015-09-22 00:10:34.728779"], ["updated_at", "2015-09-22 00:10:34.728779"]]
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"[0m  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscriber_type", "Account"], ["subscriber_id", 516032554], ["created_at", "2015-09-22 00:10:34.731409"], ["updated_at", "2015-09-22 00:10:34.731409"], ["next_renewal_at", "2015-10-22 00:10:34.731597"]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "users"[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 221168073]]
+  [1m[36m (0.1ms)[0m  [1mSAVEPOINT active_record_1[0m
+  [1m[35mUser Exists (0.4ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36mUser Exists (0.2ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "accounts" ("name", "full_domain", "created_at", "updated_at") VALUES ($1, $2, $3, $4) RETURNING "id"[0m  [["name", "Schamberger, Bartell and Schaefer"], ["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.751505"], ["updated_at", "2015-09-22 00:10:34.751505"]]
+  [1m[35mSQL (0.7ms)[0m  INSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$qY458Ed.PCTZSVxkVUVFSOhFqRa6Ymr8rI0E5mXihaRNTXoevcx9S"], ["admin", "t"], ["account_id", 516032555], ["created_at", "2015-09-22 00:10:34.753266"], ["updated_at", "2015-09-22 00:10:34.753266"]]
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "subscriptions" ("state", "user_limit", "amount", "subscription_plan_id", "subscriber_type", "subscriber_id", "created_at", "updated_at", "next_renewal_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING "id"[0m  [["state", "active"], ["user_limit", 1], ["amount", "0.0"], ["subscription_plan_id", 221168073], ["subscriber_type", "Account"], ["subscriber_id", 516032555], ["created_at", "2015-09-22 00:10:34.756405"], ["updated_at", "2015-09-22 00:10:34.756405"], ["next_renewal_at", "2015-10-22 00:10:34.756595"]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = '.sampleapp.com')
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mUser Load (0.4ms)[0m  [1mSELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't' LIMIT 1[0m  [["account_id", 516032549]]
+  [1m[35mUser Exists (0.5ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'admin@example.com' AND "users"."id" != 1048695817 AND "users"."account_id" = 516032549) LIMIT 1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'test.host' and id <> 516032549)[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.bar.sampleapp.com')
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo_bar.sampleapp.com')[0m
+  [1m[35m (0.4ms)[0m  SELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo-bar.sampleapp.com')
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 221168073]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK TO SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 221168073]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK TO SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 221168073]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK TO SAVEPOINT active_record_1
+  [1m[36m (0.6ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "subscriptions"[0m
+  [1m[35m (0.3ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.4ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.5ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.844985"], ["updated_at", "2015-09-22 00:10:34.844985"]]
+  [1m[36mSQL (0.3ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$nEcKlwiD1L5eqnYxHGULQO4tbwX9nlpOcPRJwZ4nMgcZGKGyaFZKW"], ["admin", "t"], ["account_id", 516032556], ["created_at", "2015-09-22 00:10:34.847086"], ["updated_at", "2015-09-22 00:10:34.847086"]]
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "subscriptions" ("user_limit", "amount", "subscription_plan_id", "subscriber_type", "card_number", "card_expiration", "billing_id", "next_renewal_at", "subscriber_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "id"  [["user_limit", 3], ["amount", "10.0"], ["subscription_plan_id", 276395349], ["subscriber_type", "Account"], ["card_number", "XXXX-XXXX-XXXX-1"], ["card_expiration", "02-2016"], ["billing_id", "1"], ["next_renewal_at", "2015-10-22 00:10:34.841480"], ["subscriber_id", 516032556], ["created_at", "2015-09-22 00:10:34.849575"], ["updated_at", "2015-09-22 00:10:34.849575"]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "subscriptions"
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions"  ORDER BY "subscriptions"."id" DESC LIMIT 1[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032556]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts"[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.3ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.3ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.4ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.872344"], ["updated_at", "2015-09-22 00:10:34.872344"]]
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$dp9Cf17S.Ydc/.677SrkeufvG9cvwJFSgbWIeJuAI8jCCdGGKHTGW"], ["admin", "t"], ["account_id", 516032557], ["created_at", "2015-09-22 00:10:34.874014"], ["updated_at", "2015-09-22 00:10:34.874014"]]
+  [1m[35mSQL (0.5ms)[0m  INSERT INTO "subscriptions" ("user_limit", "amount", "subscription_plan_id", "subscriber_type", "card_number", "card_expiration", "billing_id", "next_renewal_at", "subscriber_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING "id"  [["user_limit", 3], ["amount", "10.0"], ["subscription_plan_id", 276395349], ["subscriber_type", "Account"], ["card_number", "XXXX-XXXX-XXXX-1"], ["card_expiration", "02-2016"], ["billing_id", "1"], ["next_renewal_at", "2015-10-22 00:10:34.868833"], ["subscriber_id", 516032557], ["created_at", "2015-09-22 00:10:34.876467"], ["updated_at", "2015-09-22 00:10:34.876467"]]
+  [1m[36m (0.1ms)[0m  [1mRELEASE SAVEPOINT active_record_1[0m
+  [1m[35m (0.2ms)[0m  SELECT COUNT(*) FROM "accounts"
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts"  ORDER BY "accounts"."id" DESC LIMIT 1[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.1ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscriptionPlan Load (0.1ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mSQL (0.2ms)[0m  [1mUPDATE "subscription_plans" SET "trial_period" = $1, "updated_at" = $2 WHERE "subscription_plans"."id" = $3[0m  [["trial_period", nil], ["updated_at", "2015-09-22 00:10:34.892378"], ["id", 276395349]]
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "subscription_payments"[0m
+  [1m[35m (0.1ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.3ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.2ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35mSQL (0.2ms)[0m  INSERT INTO "accounts" ("full_domain", "created_at", "updated_at") VALUES ($1, $2, $3) RETURNING "id"  [["full_domain", "foo.sampleapp.com"], ["created_at", "2015-09-22 00:10:34.902415"], ["updated_at", "2015-09-22 00:10:34.902415"]]
+  [1m[36mSQL (0.2ms)[0m  [1mINSERT INTO "users" ("name", "email", "encrypted_password", "admin", "account_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"[0m  [["name", "Eladio Casper"], ["email", "filomena@reinger.net"], ["encrypted_password", "$2a$04$I7gf7hVgZLdNLYdg4UOxHeAwwbubRI2sxTa4zvKR.j7SauImA/TmG"], ["admin", "t"], ["account_id", 516032558], ["created_at", "2015-09-22 00:10:34.904079"], ["updated_at", "2015-09-22 00:10:34.904079"]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "subscriptions" ("user_limit", "amount", "subscription_plan_id", "subscriber_type", "card_number", "card_expiration", "billing_id", "state", "next_renewal_at", "subscriber_id", "created_at", "updated_at") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING "id"  [["user_limit", 3], ["amount", "10.0"], ["subscription_plan_id", 276395349], ["subscriber_type", "Account"], ["card_number", "XXXX-XXXX-XXXX-1"], ["card_expiration", "02-2016"], ["billing_id", "1"], ["state", "active"], ["next_renewal_at", "2015-10-22 00:10:34.899332"], ["subscriber_id", 516032558], ["created_at", "2015-09-22 00:10:34.906434"], ["updated_at", "2015-09-22 00:10:34.906434"]]
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032558]]
+  [1m[35mSQL (0.3ms)[0m  INSERT INTO "subscription_payments" ("amount", "setup", "subscription_id", "created_at", "updated_at", "subscriber_id", "subscriber_type") VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING "id"  [["amount", "10.0"], ["setup", "f"], ["subscription_id", 980190974], ["created_at", "2015-09-22 00:10:34.909452"], ["updated_at", "2015-09-22 00:10:34.909452"], ["subscriber_id", 516032558], ["subscriber_type", "Account"]]
+[ActiveJob] Enqueued ActionMailer::DeliveryJob (Job ID: 8ca20eea-41e8-45ad-8d47-1220d1b54177) to Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/7
+[ActiveJob]   [1m[36mSubscriptionPayment Load (0.2ms)[0m  [1mSELECT  "subscription_payments".* FROM "subscription_payments" WHERE "subscription_payments"."id" = $1 LIMIT 1[0m  [["id", 7]]
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177] Performing ActionMailer::DeliveryJob from Inline(mailers) with arguments: "SubscriptionNotifier", "charge_receipt", "deliver_now", gid://saas/SubscriptionPayment/7
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177]   [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190974]]
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177]   [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032558]]
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177]   [1m[35mUser Load (0.3ms)[0m  SELECT  "users".* FROM "users" WHERE "users"."account_id" = $1 AND "users"."admin" = 't' LIMIT 1  [["account_id", 516032558]]
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177]   [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177]   Rendered /home/ben/.rvm/gems/ruby-2.2.1/gems/saas-kit-3.1.3/app/views/subscription_notifier/charge_receipt.text.erb (2.6ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177] 
+SubscriptionNotifier#charge_receipt: processed outbound mail in 8.5ms
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177] 
+Sent mail to filomena@reinger.net (2.4ms)
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177] Date: Mon, 21 Sep 2015 20:10:34 -0400
+From: support@sampleapp.com
+To: filomena@reinger.net
+Message-ID: <56009c7ae203f_18d48d3998841b3@ben-Inspiron-531.mail>
+Subject: Your SampleApp invoice
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Thank you for using SampleApp!
+
+Your credit card XXXX-XXXX-XXXX-1 has been charged 
+$10.00 for your Basic plan. This charge covers usage
+from 21 September 2015 until 22 October 2015.
+
+The attached invoice is for your records.
+
+
+INVOICE
+----------------------------------------------------------
+
+SampleApp
+
+Bill to:
+filomena@reinger.net
+
+Description                                          Price
+----------------------------------------------------------
+Basic Plan                                          $10.00
+             From 21 September 2015 to 22 October 2015
+
+                   Credit card billed: XXXX-XXXX-XXXX-1
+
+
+If you have any questions about this invoice, please contact 
+support@sampleapp.com.
+
+Thank you for your business!
+
+[ActiveJob] [ActionMailer::DeliveryJob] [8ca20eea-41e8-45ad-8d47-1220d1b54177] Performed ActionMailer::DeliveryJob from Inline(mailers) in 11.41ms
+  [1m[35m (0.1ms)[0m  RELEASE SAVEPOINT active_record_1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "subscription_payments"[0m
+  [1m[35mSubscriptionPayment Load (0.2ms)[0m  SELECT  "subscription_payments".* FROM "subscription_payments"  ORDER BY "subscription_payments"."id" DESC LIMIT 1
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032558]]
+  [1m[35mSubscription Load (0.1ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."id" = $1 LIMIT 1  [["id", 980190974]]
+  [1m[36m (0.1ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.1ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscriptionPlan Load (0.1ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  [1m[36m (0.3ms)[0m  [1mSELECT COUNT(*) FROM "accounts"[0m
+  [1m[35m (0.2ms)[0m  SAVEPOINT active_record_1
+  [1m[36mUser Exists (0.3ms)[0m  [1mSELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1[0m
+  [1m[35mUser Exists (0.2ms)[0m  SELECT  1 AS one FROM "users" WHERE ("users"."email" = 'filomena@reinger.net' AND "users"."account_id" IS NULL) LIMIT 1
+  [1m[36m (0.2ms)[0m  [1mSELECT COUNT(*) FROM "accounts" WHERE (full_domain = 'foo.sampleapp.com')[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK TO SAVEPOINT active_record_1
+  [1m[36m (0.1ms)[0m  [1mSELECT COUNT(*) FROM "accounts"[0m
+  [1m[35m (0.1ms)[0m  ROLLBACK
+  [1m[36m (0.1ms)[0m  [1mBEGIN[0m
+  [1m[35mAccount Load (0.2ms)[0m  SELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 516032549]]
+  [1m[36mSubscription Load (0.2ms)[0m  [1mSELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1[0m  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[35mSubscriptionPlan Load (0.2ms)[0m  SELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1  [["id", 276395349]]
+  Rendered accounts/_credit_card_form.html.erb (14.9ms)
+  Rendered accounts/billing.html.erb (39.0ms)
+  [1m[36m (0.2ms)[0m  [1mROLLBACK[0m
+  [1m[35m (0.1ms)[0m  BEGIN
+  [1m[36mAccount Load (0.2ms)[0m  [1mSELECT  "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1[0m  [["id", 516032549]]
+  [1m[35mSubscription Load (0.2ms)[0m  SELECT  "subscriptions".* FROM "subscriptions" WHERE "subscriptions"."subscriber_id" = $1 AND "subscriptions"."subscriber_type" = $2 LIMIT 1  [["subscriber_id", 516032549], ["subscriber_type", "Account"]]
+  [1m[36mSubscriptionPlan Load (0.2ms)[0m  [1mSELECT  "subscription_plans".* FROM "subscription_plans" WHERE "subscription_plans"."id" = $1 LIMIT 1[0m  [["id", 276395349]]
+  Rendered accounts/_credit_card_form.html.erb (13.5ms)
+  Rendered accounts/billing.html.erb (31.7ms)
+  [1m[35m (0.2ms)[0m  ROLLBACK

@@ -1,0 +1,11 @@
+= simple_form_for(@document) do |f|
+	= f.hidden_field :account_id, :value => current_account.id
+	= f.input :title
+	= f.input :description
+	= f.input :persons, placeholder: 'Who does this apply to?'
+	= f.input :requirements, placeholder: 'What are the requirements?'
+	= f.input :exceptions, placeholder: 'Are there any exceptions?'
+	= f.input :tag_list, label: 'Category', hint: '"Accounting, Marketing, ..."'
+
+
+	= f.button :submit, class: "btn btn-primary"

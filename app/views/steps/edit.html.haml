@@ -1,0 +1,30 @@
+.edit_title
+	%h1 Edit Your Steps
+.steps
+	- unless @document.steps.blank?
+		- @document.steps.each_with_index do |step, i|
+			- num = i + 1
+			.step
+				#number
+					%p= num.to_s
+				#summary
+					%p= step.summary
+				#content
+					%p= step.content
+				-unless step.image_url.blank?
+					= image_tag step.image_url
+			.trash
+				= link_to document_step_path(@document, step.id), method: :delete, data: { confirm: "Are you sure?" } do
+					%i.fa.fa-trash
+
+	- else
+		.edit_title
+
+
+.col-md-12.col
+	= render 'steps/form'
+
+	.cancel
+		= link_to "Finish", document_path(@document.id), class: "btn btn-primary"
+
+		= link_to "Cancel", document_path(@document.id)

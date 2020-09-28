@@ -1,0 +1,26 @@
+defaults: &defaults
+  app_name: Documint BETA
+  from_email: info@documint.net
+  base_domain: documint.net
+
+  gateway: stripe # Change this to stripe to use stripe
+  credentials:
+    gateway:
+      :login: <%= ENV["STRIPE_API_KEY"] %> # stripe secret key goes here
+      :password:  # leave blank for stripe
+    stripe_publishable_key: <%= ENV["STRIPE_PUBLISHABLE_KEY"] %> # use this to send cc info directly to stripe via javascript
+
+development:
+  <<: *defaults
+  base_domain: subscriptions.dev # Edit /etc/hosts to add subscriptions.dev, test.subscriptions.dev, etc., or use Pow: http://pow.cx
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
+  credentials:
+    gateway:
+      :login: sk_live_QU5VNh2mmPxdSwlU8CI49d1r
+      :password:
+    stripe_publishable_key: pk_live_7JgkRQje87x1NWSpa8ftKCcw

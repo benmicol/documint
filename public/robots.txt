@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /saas_admin/
+Disallow: /saas_admins/
+Disallow: /users/
+Disallow: /account/
+Disallow: /tags/
+Disallow: /documents/
+Disallow: /messages/
+sitemap: http://documint.net/sitemap.xml

@@ -1,0 +1,11 @@
+%table.table.table-striped
+  %thead
+    %tr
+      %th Messages
+  %tbody
+    -unless @messages.blank?
+      -@messages.each do |message|
+        %tr
+          %td
+            = message.content
+=render 'messages/form'

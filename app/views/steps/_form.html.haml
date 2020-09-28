@@ -1,0 +1,7 @@
+.edit_title
+	%h2 Add Step
+= simple_form_for([@document, @document.steps.build], :html => { multipart: true }) do |f|
+	= f.input :summary, placeholder: "Step Name", label: false, autofocus: true
+	= f.input :content, placeholder: "Step Content", label: false
+	= f.input :image, label: 'Add Image'
+	= f.button :submit, class: "btn btn-primary"

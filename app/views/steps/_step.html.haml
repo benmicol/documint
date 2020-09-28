@@ -1,0 +1,13 @@
+.steps
+	- @document.steps.each_with_index do |s, i|
+		- num = i + 1
+		.step
+			#number
+				= num.to_s
+			#summary
+				%p= s.summary
+			#content
+				%p= s.content
+			-unless s.image_url.blank?
+				= image_tag s.image_url
+			-else

@@ -1,0 +1,248 @@
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+}
+
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+/* Bootstrap Customizations */
+
+.jumbotron {
+  background-image: url(image_path("jumbo.jpeg"));
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: top center;
+  min-height: 350px;
+  p {
+    color: $black;
+  }
+  h1 {
+    color: $black;
+    font-size: calc(2vw + 2vh);
+  }
+  .btn {
+    background-color: $blue;
+  }
+}
+
+#jumbo-title {
+  width: 50%;
+  margin-top: 55px;
+}
+.navbar-brand {
+  color: $blue !important;
+  font-weight: bold;
+}
+
+#navbar-border {
+  border-bottom: 5px solid $blue;
+}
+
+.navbar-inverse {
+  background-color: $black;
+  border-color: $black;
+  .navbar-nav {
+    li {
+      a{
+        color: white;
+      }
+    }
+  }
+}
+
+.dropdown-menu {
+  background-color: $white;
+  li {
+    color: $black;
+    a {
+      color: $black !important;
+    }
+  }
+}
+
+.dropdown-menu > li > a:focus {
+    color: #262626 !important;
+}
+
+.btn-primary {
+  background-color: $blue;
+}
+
+input[type="text"], input[type="email"], input[type="password"], textarea {
+  min-width: 320px;
+}
+
+.row {
+  padding-bottom: 80px;
+}
+.laptop img {
+  max-width: 100%;
+}
+.glyphicon.glyphicon-ok {
+  font-size: 28px;
+  color: $blue;
+  
+  padding-right: 20px;
+  
+}
+
+.check {
+  font-size: 28px;
+}
+
+#checks {
+  padding: 45px 0 60px 0;
+}
+
+#how {
+  text-align: center;
+  h2 {
+    padding-bottom: 60px;
+    font-size: 48px;
+  }
+  p {
+    font-size: 28px;
+  }
+}
+
+.hownumber {
+  font-size: 48px !important;
+  padding: 5px 20px 5px 20px;
+  color: $blue;
+  border: 3px solid $blue;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 30px;
+}
+
+.howicon {
+  font-size: 72px;
+  color: $blue;
+}
+#try {
+  padding: 5px;
+  color: white;
+  margin: 9px 15px;
+}
+
+#box {
+  background-color: white;
+  color: $black;
+  margin: 0 0 0 0;
+  padding-top: 80px;
+  text-align: center;
+  #box1 {
+    
+    min-height: 200px;
+  }
+  #box2 {
+    
+    min-height: 200px;
+  }
+  #box3 {
+    min-height: 200px;
+  }
+  span {
+    font-size: 50px;
+    color: $blue;
+  }
+}
+
+#laptop {
+
+}
+
+#plan-title {
+  padding-top: 20px;
+  padding-bottom: 40px;
+  text-align: center;
+}
+
+.features {
+  h1 {
+    padding: 20px 0 80px 0;
+    text-align: center;
+  }
+}
+
+.feature {
+  text-align: center;
+  p {font-size: 18px;}
+}
+
+#feature1{
+  padding-top: 27%;
+}
+
+#feature2{
+  padding-top: 40%;
+}
+
+#feature3{
+  padding-top: 7%;
+}
+
+.aboutwrapper {
+  padding: 20px 0 40px 0;
+  p {font-size: 24px;}
+  h1 {
+    padding: 20px 0 40px 0;
+    text-align: center;
+  }
+}
+
+.jumbotronabout {
+  background-image: url(image_path("about.jpg"));
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 400px;
+  border-radius: 6px;
+}
+
+.questions {
+  text-align: center;
+}
+
+.contact {
+  text-align: center;
+  h1 {padding-top: 20px;}
+  p {font-size: 20px;}
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  /* Negative indent footer by its height */
+  margin: 0 auto -30px;
+  /* Pad bottom by footer height */
+  padding: 0 0 30px;
+}
+
+/* Set the fixed height of the footer here */
+#footer {
+
+  
+
+  background-color: $light-gray;
+}
+
+#footer p {
+  margin: 5px 0;
+}
+
+#footer .nav > li > a {
+  padding: 5px 15px;
+}
+
+#submit_or_cancel {
+  margin-top: 1em;
+}
+
+#wrap > .container > .alert {
+  margin-top: 2em;
+}

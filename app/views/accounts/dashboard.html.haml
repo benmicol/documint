@@ -1,0 +1,45 @@
+%h1 Dashboard
+
+= link_to "Documentation", documents_path, class: 'btn btn-primary'
+= link_to "User Management", users_path, class: 'btn btn-primary'
+= link_to "Account Settings", account_path, class: 'btn btn-primary'
+=link_to 'Messages', messages_path, class: 'btn btn-primary'
+= link_to "Logout", destroy_user_session_path, :method => :delete, class: 'btn btn-primary'
+
+.row#dashboard
+  .col-md-4
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Recent Documents
+      %tbody
+        -current_account.documents.each do |document|
+          %tr
+            %td
+              %span.glyphicon.glyphicon-file
+              %a{:href => (url_for [document])}= document.title
+
+  .col-md-4
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Users
+      %tbody
+        -current_account.users.each do |user|
+          %tr
+            %td
+              %span.glyphicon.glyphicon-user
+              = user.name
+
+  .col-md-4
+    %table.table.table-striped
+      %thead
+        %tr
+          %th Messages
+      %tbody
+        -unless current_account.messages.blank?
+          -current_account.messages.each do |message|
+            %tr
+              %td
+                %span.glyphicon.glyphicon-envelope
+                = message.content

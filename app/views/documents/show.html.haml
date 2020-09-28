@@ -1,0 +1,22 @@
+#document_show
+	%h1= @document.title
+	.description
+		%p= simple_format(@document.description)
+	-unless @document.persons.blank?
+		%h2 People Inovolved:
+		%p= @document.persons
+	-unless @document.requirements.blank?
+		%h2 Requirements:
+		%p= @document.requirements
+
+	= render 'steps/step'
+
+	-unless @document.exceptions.blank?
+		%h2 Exceptions:
+		%p= @document.exceptions
+
+
+	.container
+		= link_to "Add/Edit Steps", document_steps_path(@document), class: "btn btn-primary"
+		= link_to "Edit Document", edit_document_path(@document), class: "btn btn-primary"
+		= link_to "Delete Document", document_path(@document), method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-primary"
